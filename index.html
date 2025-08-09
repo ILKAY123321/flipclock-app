@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Saat</title>
+  <style>
+    /* Sadece koyu tema değişkenleri */
+    :root {
+      --bg-color: #121212;
+      --text-color: #aaa;
+      --top-bg: #444;
+      --bottom-bg: #222;
+      --bottom-color: #ddd;
+      --border-top: #333;
+      --titlebar-bg: #000000; /* Siyah */
+      --btn-hover-bg: #333;
+      --close-color: #e81123;
+      --minimize-color: #f9d71c; /* Sarı */
+      --maximize-color: #0db945; /* Yeşil */
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    /* Modern Başlık Çubuğu */
+    header.titlebar {
+      -webkit-app-region: drag;
+      width: 100%;
+      height: 32px;
+      background: var(--titlebar-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      user-select: none;
+      z-index: 9999;
+    }
+
+    .titlebar .title {
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .window-controls {
+      -webkit-app-region: no-drag;
+      position: absolute;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      height: 28px;
+      align-items: center;
+    }
+
+    .window-controls button {
+      width: 40px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      transition: background-color 0.2s ease, color 0.4s ease, box-shadow 0.4s ease, transform 0.15s ease;
+      font-weight: bold;
+      line-height: 1;
+      padding: 0;
+      user-select: none;
+    }
+
+    /* Küçült butonu (sarı) */
+    #min-btn:hover {
+      background-color: var(--minimize-color);
+      color: black;
+      box-shadow: 0 0 12px var(--minimize-color);
+      transform: scale(1.2) rotate(-10deg);
+      animation: pulseYellow 1.2s infinite alternate;
+    }
+
+    #min-btn:active {
+      animation: none;
+      background-color: #c7b017;
+      box-shadow: none;
+      transform: scale(1) rotate(0deg);
+    }
+
+    /* Büyüt butonu (yeşil) */
+    #max-btn:hover {
+      background-color: var(--maximize-color);
+      color: white;
+      box-shadow: 0 0 12px var(--maximize-color);
+      transform: scale(1.2) rotate(10deg);
+      animation: pulseGreen 1.2s infinite alternate;
+    }
+
+    #max-btn:active {
+      animation: none;
+      background-color: #0a7c2b;
+      box-shadow: none;
+      transform: scale(1) rotate(0deg);
+    }
+
+    /* Close butonuna özel animasyon (kırmızı) */
+    #close-btn {
+      transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, transform 0.15s ease;
+    }
+
+    #close-btn:hover {
+      animation: pulseRed 1.2s infinite alternate;
+      color: white;
+      box-shadow: 0 0 14px var(--close-color);
+      transform: scale(1.2) rotate(10deg);
+      background-color: var(--close-color);
+    }
+
+    #close-btn:active {
+      animation: none;
+      background-color: #a50f1f;
+      box-shadow: none;
+      transform: scale(1) rotate(0deg);
+    }
+
+    @keyframes pulseRed {
+      0% {
+        background-color: #e81123;
+        box-shadow: 0 0 10px #e81123;
+      }
+
+      50% {
+        background-color: #ff3547;
+        box-shadow: 0 0 18px #ff3547;
+      }
+
+      100% {
+        background-color: #e81123;
+        box-shadow: 0 0 10px #e81123;
+      }
+    }
+
+    @keyframes pulseYellow {
+      0% {
+        background-color: #f9d71c;
+        box-shadow: 0 0 10px #f9d71c;
+      }
+
+      50% {
+        background-color: #ffec3c;
+        box-shadow: 0 0 18px #ffec3c;
+      }
+
+      100% {
+        background-color: #f9d71c;
+        box-shadow: 0 0 10px #f9d71c;
+      }
+    }
+
+    @keyframes pulseGreen {
+      0% {
+        background-color: #0db945;
+        box-shadow: 0 0 10px #0db945;
+      }
+
+      50% {
+        background-color: #28e062;
+        box-shadow: 0 0 18px #28e062;
+      }
+
+      100% {
+        background-color: #0db945;
+        box-shadow: 0 0 10px #0db945;
+      }
+    }
+
+    /* Flip clock container padding, header üstte olduğu için */
+    .flip-clock {
+      text-align: center;
+      perspective: 600px;
+      margin: 0 auto;
+      padding-top: 40px; /* header yüksekliği + biraz boşluk */
+      user-select: none;
+    }
+
+    /* Flip clock diğer stiller aynı */
+    .flip-clock *,
+    .flip-clock *:before,
+    .flip-clock *:after {
+      box-sizing: border-box;
+    }
+
+    .flip-clock__piece {
+      display: inline-block;
+      margin: 0 0.2vw;
+    }
+
+    @media (min-width: 1000px) {
+      .flip-clock__piece {
+        margin: 0 5px;
+      }
+    }
+
+    .flip-clock__slot {
+      font-size: 1.5rem;
+      line-height: 1.5;
+      display: block;
+    }
+
+    .flip-card {
+      display: block;
+      position: relative;
+      padding-bottom: 0.72em;
+      font-size: 3.5rem;
+      line-height: 0.95;
+    }
+
+    @media (min-width: 1000px) {
+      .flip-clock__slot {
+        font-size: 1.8rem;
+      }
+
+      .flip-card {
+        font-size: 4.5rem;
+      }
+    }
+
+    .flip-card__top,
+    .flip-card__bottom,
+    .flip-card__back-bottom,
+    .flip-card__back::before,
+    .flip-card__back::after {
+      display: block;
+      height: 0.72em;
+      color: var(--text-color);
+      background: var(--top-bg);
+      padding: 0.23em 0.25em 0.4em;
+      border-radius: 0.15em 0.15em 0 0;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      width: 1.8em;
+      transition: background-color 0.3s, color 0.3s;
+      font-weight: bold;
+      text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .flip-card__bottom,
+    .flip-card__back-bottom {
+      color: var(--bottom-color);
+      position: absolute;
+      top: 50%;
+      left: 0;
+      border-top: solid 1px var(--border-top);
+      background: var(--bottom-bg);
+      border-radius: 0 0 0.15em 0.15em;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 2;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    .flip-card__back-bottom {
+      z-index: 1;
+    }
+
+    .flip-card__bottom::after,
+    .flip-card__back-bottom::after {
+      display: block;
+      margin-top: -0.72em;
+    }
+
+    .flip-card__back::before,
+    .flip-card__bottom::after,
+    .flip-card__back-bottom::after {
+      content: attr(data-value);
+    }
+
+    .flip-card__back {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      left: 0%;
+      pointer-events: none;
+    }
+
+    .flip-card__back::before {
+      position: relative;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .flip .flip-card__back::before {
+      z-index: 1;
+      -webkit-animation: flipTop 0.3s cubic-bezier(0.37, 0.01, 0.94, 0.35);
+      animation: flipTop 0.3s cubic-bezier(0.37, 0.01, 0.94, 0.35);
+      -webkit-animation-fill-mode: both;
+      animation-fill-mode: both;
+      transform-origin: center bottom;
+    }
+
+    .flip .flip-card__bottom {
+      transform-origin: center top;
+      -webkit-animation-fill-mode: both;
+      animation-fill-mode: both;
+      -webkit-animation: flipBottom 0.6s cubic-bezier(0.15, 0.45, 0.28, 1);
+      animation: flipBottom 0.6s cubic-bezier(0.15, 0.45, 0.28, 1);
+    }
+
+    @-webkit-keyframes flipTop {
+      0% {
+        transform: rotateX(0deg);
+        z-index: 2;
+      }
+
+      0%,
+      99% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: rotateX(-90deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes flipTop {
+      0% {
+        transform: rotateX(0deg);
+        z-index: 2;
+      }
+
+      0%,
+      99% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: rotateX(-90deg);
+        opacity: 0;
+      }
+    }
+
+    @-webkit-keyframes flipBottom {
+      0%,
+      50% {
+        z-index: -1;
+        transform: rotateX(90deg);
+        opacity: 0;
+      }
+
+      51% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 1;
+        transform: rotateX(0deg);
+        z-index: 5;
+      }
+    }
+
+    @keyframes flipBottom {
+      0%,
+      50% {
+        z-index: -1;
+        transform: rotateX(90deg);
+        opacity: 0;
+      }
+
+      51% {
+        opacity: 1;
+        transform: rotateX(0deg);
+        z-index: 5;
+      }
+    }
+  </style>
+</head>
+
+<body translate="no">
+  <script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const minBtn = document.getElementById('min-btn');
+    const maxBtn = document.getElementById('max-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    if (minBtn) minBtn.addEventListener('click', () => window.electronAPI.minimize());
+    if (maxBtn) maxBtn.addEventListener('click', () => window.electronAPI.maximize());
+    if (closeBtn) closeBtn.addEventListener('click', () => window.electronAPI.close());
+  });
+</script>
+
+  <header class="titlebar">
+    <div class="title"></div>
+    <div class="window-controls">
+      <button id="min-btn" aria-label="Minimize" title="Küçült">—</button>
+      <button id="max-btn" aria-label="Maximize" title="Büyüt">▢</button>
+      <button id="close-btn" aria-label="Close" title="Kapat">×</button>
+    </div>
+  </header>
+
+  <script src="https://cdn.rawgit.com/vuejs/vue/v1.0.24/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+
+  <script>
+    Vue.filter('zerofill', function (value) {
+      return (value < 10 && value > -1 ? '0' : '') + value;
+    });
+
+    var Tracker = Vue.extend({
+      template: `
+      <span v-show="show" class="flip-clock__piece">
+        <span class="flip-clock__card flip-card" :class="{flip: flipping}">
+          <b class="flip-card__top">{{ current | zerofill }}</b>
+          <b class="flip-card__bottom" :data-value="current | zerofill"></b>
+          <b class="flip-card__back" :data-value="previous | zerofill"></b>
+          <b class="flip-card__back-bottom" :data-value="previous | zerofill"></b>
+        </span>
+        <span class="flip-clock__slot">{{ label }}</span>
+      </span>
+      `,
+      props: ['property', 'label', 'time'],
+      data: function () {
+        return {
+          current: 0,
+          previous: 0,
+          show: false,
+          flipping: false
+        };
+      },
+      events: {
+        time(newValue) {
+          if (newValue[this.property] === undefined) {
+            this.show = false;
+            return;
+          }
+          var val = newValue[this.property];
+          this.show = true;
+          val = val < 0 ? 0 : val;
+          if (val !== this.current) {
+            this.previous = this.current;
+            this.current = val;
+            this.flipping = false;
+            setTimeout(() => {
+              this.flipping = true;
+            }, 20);
+          }
+        }
+      }
+    });
+
+    var el = document.createElement('div');
+    document.body.appendChild(el);
+
+    var Countdown = new Vue({
+      el: el,
+      template: `
+      <div class="flip-clock" @click="update">
+        <tracker
+          v-for="tracker in trackers"
+          :property="tracker.key"
+          :label="tracker.label"
+          :time="time"
+          v-ref:trackers
+        ></tracker>
+      </div>
+      `,
+      data: function () {
+        return {
+          time: {},
+          i: 0,
+          trackers: [
+            { key: 'Hours', label: 'Saat' },
+            { key: 'Minutes', label: 'Dakika' },
+          ]
+        };
+      },
+      components: {
+        Tracker
+      },
+      beforeDestroy() {
+        if (window['cancelAnimationFrame']) {
+          cancelAnimationFrame(this.frame);
+        }
+      },
+      ready() {
+        if (window['requestAnimationFrame']) {
+          this.update();
+        }
+      },
+      methods: {
+        update() {
+          this.frame = requestAnimationFrame(this.update.bind(this));
+          if (this.i++ % 10) {
+            return;
+          }
+          var t = moment();
+          this.time.Hours = t.hours();
+          this.time.Minutes = t.minutes();
+          this.time.Seconds = t.seconds();
+          this.time.Total = null;
+          this.$broadcast('time', this.time);
+          return this.time;
+        }
+      }
+    });
+    
+  </script>
+</body>
+
+</html>
